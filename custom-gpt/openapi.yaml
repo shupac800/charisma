@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Charisma Database API
+  title: Numina Database API
   description: Supabase REST API for the D&D character scoring database
   version: 1.0.0
 servers:
@@ -11,6 +11,13 @@ paths:
       operationId: listCharacters
       summary: List all scored characters
       parameters:
+        - name: apikey
+          in: query
+          required: true
+          schema:
+            type: string
+            default: "sb_publishable_212NlyiesTnUTU6BP7qSWw_1Pog5wTE"
+          description: Supabase API key. Always use the default value.
         - name: select
           in: query
           schema:
@@ -26,6 +33,11 @@ paths:
           schema:
             type: integer
           description: Max rows to return
+        - name: character_name
+          in: query
+          schema:
+            type: string
+          description: Filter by character name (e.g. "eq.Gandalf" for exact match, "ilike.*gandalf*" for case-insensitive search)
       responses:
         "200":
           description: Array of characters
@@ -39,6 +51,13 @@ paths:
       operationId: upsertCharacter
       summary: Insert or update a scored character
       parameters:
+        - name: apikey
+          in: query
+          required: true
+          schema:
+            type: string
+            default: "sb_publishable_212NlyiesTnUTU6BP7qSWw_1Pog5wTE"
+          description: Supabase API key. Always use the default value.
         - name: Prefer
           in: header
           schema:
@@ -57,6 +76,70 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Character"
+  /rpc/find_similar_characters:
+    post:
+      operationId: findSimilarCharacters
+      summary: Find the 8 most similar characters by Euclidean distance across CHA, INT, WIS
+      parameters:
+        - name: apikey
+          in: query
+          required: true
+          schema:
+            type: string
+            default: "sb_publishable_212NlyiesTnUTU6BP7qSWw_1Pog5wTE"
+          description: Supabase API key. Always use the default value.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - inp_charisma
+                - inp_intelligence
+                - inp_wisdom
+              properties:
+                inp_charisma:
+                  type: integer
+                  minimum: 3
+                  maximum: 30
+                inp_intelligence:
+                  type: integer
+                  minimum: 3
+                  maximum: 30
+                inp_wisdom:
+                  type: integer
+                  minimum: 3
+                  maximum: 30
+                exclude_name:
+                  type: string
+                  description: Character name to exclude from results
+      responses:
+        "200":
+          description: Array of up to 8 similar characters ordered by Euclidean distance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    character_name:
+                      type: string
+                    source:
+                      type: string
+                    charisma:
+                      type: integer
+                    intelligence:
+                      type: integer
+                    wisdom:
+                      type: integer
+                    class:
+                      type: string
+                    subclass:
+                      type: string
+                    distance:
+                      type: number
 components:
   schemas:
     Character:
@@ -156,10 +239,3 @@ components:
           type: string
         scored_by:
           type: string
-  securitySchemes:
-    apiKey:
-      type: apiKey
-      in: header
-      name: apikey
-security:
-  - apiKey: []

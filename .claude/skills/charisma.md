@@ -356,40 +356,41 @@ Be specific and grounded. Avoid generic praise or insults. Each score should fee
 
 ## Step 6: Find Similar Characters
 
-After presenting the assessment, query the database for the 8 most similar characters. Similarity is measured by **Euclidean distance** across the three mental stat scores.
+After presenting the assessment, call the Postgres function to find the 8 most similar characters by Euclidean distance across CHA, INT, WIS.
 
 ### How to Query
 
-Use the PowerShell tool to GET all characters from the database:
+Use the PowerShell tool to POST to the RPC endpoint:
 
 ```powershell
 $headers = @{
   "apikey" = "sb_publishable_212NlyiesTnUTU6BP7qSWw_1Pog5wTE"
   "Authorization" = "Bearer sb_publishable_212NlyiesTnUTU6BP7qSWw_1Pog5wTE"
+  "Content-Type" = "application/json"
 }
-Invoke-RestMethod -Uri "https://wuiolpbccipaenvzbcdw.supabase.co/rest/v1/characters?select=character_name,source,charisma,intelligence,wisdom,class,subclass" -Headers $headers -Method Get | ConvertTo-Json
+$body = @{
+  inp_charisma = CHARISMA_SCORE
+  inp_intelligence = INTELLIGENCE_SCORE
+  inp_wisdom = WISDOM_SCORE
+  exclude_name = "CHARACTER_NAME"
+} | ConvertTo-Json
+Invoke-RestMethod -Uri "https://wuiolpbccipaenvzbcdw.supabase.co/rest/v1/rpc/find_similar_characters" -Headers $headers -Method Post -Body $body | ConvertTo-Json
 ```
 
-### How to Rank
-
-For each character in the database (excluding the current subject if already present), compute:
-
-`distance = sqrt((cha1 - cha2)^2 + (int1 - int2)^2 + (wis1 - wis2)^2)`
-
-Sort by distance ascending. Take the top 8 (or all if fewer than 9 exist in the database).
+The function returns up to 8 characters with `character_name`, `source`, `charisma`, `intelligence`, `wisdom`, `class`, `subclass`, and `distance`, ordered by ascending Euclidean distance.
 
 ### How to Present
 
 After the summary card, add:
 
-**Most Similar in the Database**
+**Most Similar**
 
 | Rank | Character | Source | CHA | INT | WIS | Class | Distance |
 |------|-----------|--------|-----|-----|-----|-------|----------|
 | 1 | Name | Source | N | N | N | Class — Subclass | X.X |
 | ... | ... | ... | ... | ... | ... | ... | ... |
 
-If the database is empty or contains only the current subject, say: "No other characters in the database yet."
+If the function returns no results, say: "No other characters in the database yet."
 
 Add a one-sentence observation about the closest match — what they share with the current subject and where they diverge.
 
