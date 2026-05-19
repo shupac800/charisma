@@ -1,0 +1,165 @@
+openapi: 3.1.0
+info:
+  title: Charisma Database API
+  description: Supabase REST API for the D&D character scoring database
+  version: 1.0.0
+servers:
+  - url: https://wuiolpbccipaenvzbcdw.supabase.co/rest/v1
+paths:
+  /characters:
+    get:
+      operationId: listCharacters
+      summary: List all scored characters
+      parameters:
+        - name: select
+          in: query
+          schema:
+            type: string
+          description: Columns to select (e.g. "character_name,charisma,intelligence,wisdom,class,subclass,source")
+        - name: order
+          in: query
+          schema:
+            type: string
+          description: Sort order (e.g. "created_at.desc")
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          description: Max rows to return
+      responses:
+        "200":
+          description: Array of characters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Character"
+    post:
+      operationId: upsertCharacter
+      summary: Insert or update a scored character
+      parameters:
+        - name: Prefer
+          in: header
+          schema:
+            type: string
+            default: "return=representation,resolution=merge-duplicates"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CharacterInsert"
+      responses:
+        "201":
+          description: Character created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Character"
+components:
+  schemas:
+    Character:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        character_name:
+          type: string
+        source:
+          type: string
+        category:
+          type: string
+          enum: [fictional, public_figure, private]
+        charisma:
+          type: integer
+          minimum: 3
+          maximum: 30
+        intelligence:
+          type: integer
+          minimum: 3
+          maximum: 30
+        wisdom:
+          type: integer
+          minimum: 3
+          maximum: 30
+        class:
+          type: string
+        subclass:
+          type: string
+        charisma_reasoning:
+          type: string
+        intelligence_reasoning:
+          type: string
+        wisdom_reasoning:
+          type: string
+        class_reasoning:
+          type: string
+        stat_interaction:
+          type: string
+        scored_by:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    CharacterInsert:
+      type: object
+      required:
+        - character_name
+        - source
+        - category
+        - charisma
+        - intelligence
+        - wisdom
+        - class
+        - subclass
+        - charisma_reasoning
+        - intelligence_reasoning
+        - wisdom_reasoning
+        - class_reasoning
+        - stat_interaction
+        - scored_by
+      properties:
+        character_name:
+          type: string
+        source:
+          type: string
+        category:
+          type: string
+          enum: [fictional, public_figure]
+        charisma:
+          type: integer
+          minimum: 3
+          maximum: 30
+        intelligence:
+          type: integer
+          minimum: 3
+          maximum: 30
+        wisdom:
+          type: integer
+          minimum: 3
+          maximum: 30
+        class:
+          type: string
+        subclass:
+          type: string
+        charisma_reasoning:
+          type: string
+        intelligence_reasoning:
+          type: string
+        wisdom_reasoning:
+          type: string
+        class_reasoning:
+          type: string
+        stat_interaction:
+          type: string
+        scored_by:
+          type: string
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: apikey
+security:
+  - apiKey: []
