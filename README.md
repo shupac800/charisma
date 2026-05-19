@@ -42,7 +42,7 @@ The natural human range is 3-18. An 18 is the absolute peak of human potential â
 Clone this repo, `cd` into it, and type `/charisma` in Claude Code:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/charisma.git
+git clone https://github.com/shupac800/charisma.git
 cd charisma
 claude
 # then type: /charisma
